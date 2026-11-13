@@ -20,6 +20,9 @@ const strings = {
     localOnly: 'ไฟล์ถูกอ่านในเบราว์เซอร์นี้เท่านั้น',
     sample: 'ลองเปิดเอกสารตัวอย่าง',
     installHint: 'ติดตั้งแอปไว้บนเครื่อง แล้วเปิดไฟล์ PDF จากภายนอกได้ทันที',
+    installTitle: 'ติดตั้งแอปนี้ไว้บนเครื่อง',
+    installCta: 'ติดตั้งแอป',
+    installManual: 'เปิดเมนูเบราว์เซอร์ แล้วเลือก “เพิ่มไปที่หน้าจอโฮม” (iPhone/iPad) หรือไอคอนติดตั้งบนแถบที่อยู่',
     features: [
       { title: 'ไม่จัดเก็บไฟล์', text: 'ประมวลผลในเครื่องคุณ 100%' },
       { title: 'ไม่มีขีดจำกัด', text: 'ไฟล์ใหญ่หรือหลายหน้าแค่ไหนก็ได้' },
@@ -103,6 +106,9 @@ const strings = {
     localOnly: 'Your file is read in this browser only',
     sample: 'Try the sample document',
     installHint: 'Install the app once and open PDF files from your device directly',
+    installTitle: 'Install this app on your device',
+    installCta: 'Install app',
+    installManual: 'Open your browser menu and choose “Add to Home screen” (iPhone/iPad), or use the install icon in the address bar',
     features: [
       { title: 'No file storage', text: 'Processed on your device, 100%' },
       { title: 'No limits', text: 'Any file size or page count' },

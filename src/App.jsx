@@ -6,6 +6,8 @@ import UpdatePopup from './components/UpdatePopup.jsx';
 import { BookOpenIcon, CheckIcon, ImageIcon, XIcon } from './components/Icons.jsx';
 import { APP_NAME, APP_VERSION, BRAND_LINE, LANG_KEY, UPDATE_SEEN_KEY } from './config/app.js';
 import { LANGUAGES, getStrings } from './lib/i18n.js';
+import useInstallPrompt from './lib/useInstallPrompt.js';
+import useKeyboardInset from './lib/useKeyboardInset.js';
 import { compareVersions, fetchLatestVersion } from './lib/version.js';
 
 const LEGACY_LANG_KEY = 'wspdf88.lang';
@@ -37,6 +39,9 @@ export default function App() {
 
   const inputRef = useRef(null);
   const t = getStrings(lang);
+  const { canInstall, installed, install } = useInstallPrompt();
+
+  useKeyboardInset();
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -243,6 +248,9 @@ export default function App() {
             onPick={() => inputRef.current?.click()}
             onSample={openSample}
             onDropFile={openFile}
+            canInstall={canInstall}
+            installed={installed}
+            onInstall={install}
           />
         )}
       </div>

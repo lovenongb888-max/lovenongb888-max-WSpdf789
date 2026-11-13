@@ -57,6 +57,8 @@ button {
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
+  /* Shrinks with the on-screen keyboard so popups stay visible while typing. */
+  height: calc(100dvh - var(--kb-inset, 0px));
   overflow: hidden;
 }
 
@@ -368,6 +370,68 @@ button {
 
 /* ---------- Home ---------- */
 
+.install-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #c7ccf8;
+  background: linear-gradient(155deg, #eef2ff, #f7f6ff);
+  box-shadow: var(--shadow-soft);
+  text-align: left;
+}
+
+.install-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  flex: 0 0 auto;
+  box-shadow: 0 6px 14px rgba(79, 70, 229, 0.28);
+}
+
+.install-copy {
+  flex: 1 1 150px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.4;
+}
+
+.install-copy strong {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.install-copy span {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.install-btn {
+  flex: 0 0 auto;
+  height: 36px;
+  padding: 0 14px;
+}
+
+.install-note {
+  flex: 1 1 100%;
+  margin: 0;
+  padding-top: 2px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
 .dropzone {
   width: 100%;
   padding: 20px 16px;
@@ -450,14 +514,6 @@ button {
 .features span {
   font-size: 11.5px;
   color: var(--muted);
-}
-
-.install-hint {
-  margin: 12px 0 0;
-  text-align: center;
-  font-size: 11.5px;
-  color: var(--muted);
-  line-height: 1.5;
 }
 
 /* ---------- Converter ---------- */
@@ -1023,6 +1079,8 @@ button {
   align-items: center;
   gap: 11px;
   text-align: center;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .state-card h1,
@@ -1205,6 +1263,10 @@ button {
   .home,
   .convert {
     padding: 16px 12px 26px;
+  }
+
+  .install-btn {
+    flex: 1 1 100%;
   }
 
   .toolbar {

@@ -1,9 +1,28 @@
 import { useRef, useState } from 'react';
-import { FileTextIcon } from './Icons.jsx';
+import { DownloadIcon, FileTextIcon } from './Icons.jsx';
 
-export default function Home({ t, notice, onPick, onSample, onDropFile }) {
+export default function Home({
+  t,
+  notice,
+  onPick,
+  onSample,
+  onDropFile,
+  canInstall,
+  installed,
+  onInstall,
+}) {
   const [dragging, setDragging] = useState(false);
+  const [installNote, setInstallNote] = useState(false);
   const depth = useRef(0);
+
+  const handleInstall = async () => {
+    if (!canInstall) {
+      setInstallNote(true);
+      return;
+    }
+    const result = await onInstall();
+    setInstallNote(!result?.available);
+  };
 
   const onDragEnter = (event) => {
     event.preventDefault();
@@ -42,6 +61,23 @@ export default function Home({ t, notice, onPick, onSample, onDropFile }) {
         <p>{t.heroSubtitle}</p>
       </header>
 
+      {installed ? null : (
+        <section className="install-card" aria-label={t.installTitle}>
+          <span className="install-icon" aria-hidden="true">
+            <DownloadIcon size={19} />
+          </span>
+          <span className="install-copy">
+            <strong>{t.installTitle}</strong>
+            <span>{t.installHint}</span>
+          </span>
+          <button type="button" className="btn primary install-btn" onClick={handleInstall}>
+            <DownloadIcon size={15} />
+            {t.installCta}
+          </button>
+          {installNote ? <p className="install-note">{t.installManual}</p> : null}
+        </section>
+      )}
+
       <div className={`dropzone${dragging ? ' is-dragging' : ''}`}>
         <span className="dropzone-icon">
           <FileTextIcon size={24} />
@@ -76,8 +112,6 @@ export default function Home({ t, notice, onPick, onSample, onDropFile }) {
           </li>
         ))}
       </ul>
-
-      <p className="install-hint">{t.installHint}</p>
     </main>
   );
 }
