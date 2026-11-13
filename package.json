@@ -1,15 +1,16 @@
 {
-  "name": "wspdf88",
+  "name": "wspdf789",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.3",
   "type": "module",
-  "description": "WSPdf88 — PDF reader app",
+  "description": "WSPdf789 — read PDFs and convert pages to images",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "jszip": "3.10.1",
     "pdfjs-dist": "4.10.38",
     "react": "18.3.1",
     "react-dom": "18.3.1"

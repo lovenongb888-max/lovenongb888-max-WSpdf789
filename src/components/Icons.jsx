@@ -117,3 +117,52 @@ export function CheckIcon(props) {
     </Icon>
   );
 }
+
+export function BookOpenIcon(props) {
+  return (
+    <Icon {...props}>
+      <path d="M12 6.5C10.5 5.5 8.7 5 6.5 5H4v13h2.5c2.2 0 4 .5 5.5 1.5" />
+      <path d="M12 6.5C13.5 5.5 15.3 5 17.5 5H20v13h-2.5c-2.2 0-4 .5-5.5 1.5" />
+      <path d="M12 6.5v13" />
+    </Icon>
+  );
+}
+
+export function ImageIcon(props) {
+  return (
+    <Icon {...props}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+      <circle cx="9" cy="10" r="1.6" />
+      <path d="m20 16-4.2-4.2a1.6 1.6 0 0 0-2.3 0L6 19" />
+    </Icon>
+  );
+}
+
+export function DownloadIcon(props) {
+  return (
+    <Icon {...props}>
+      <path d="M12 4v11" />
+      <path d="m7.5 11 4.5 4.5L16.5 11" />
+      <path d="M4.5 19.5h15" />
+    </Icon>
+  );
+}
+
+export function UploadIcon(props) {
+  return (
+    <Icon {...props}>
+      <path d="M12 15V4" />
+      <path d="m7.5 8.5 4.5-4.5 4.5 4.5" />
+      <path d="M4.5 19.5h15" />
+    </Icon>
+  );
+}
+
+export function SparkIcon(props) {
+  return (
+    <Icon {...props}>
+      <path d="M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6z" />
+      <path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" />
+    </Icon>
+  );
+}

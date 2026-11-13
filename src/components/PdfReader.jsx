@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { pdfjs } from '../lib/pdf.js';
 import PdfPage from './PdfPage.jsx';
 import {
   ChevronLeftIcon,
@@ -12,8 +11,6 @@ import {
   ZoomInIcon,
   ZoomOutIcon,
 } from './Icons.jsx';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 const MIN_ZOOM = 0.35;
 const MAX_ZOOM = 3;
@@ -58,12 +55,12 @@ export default function PdfReader({ file, t, onOpenAnother, onReset }) {
         const data = await file.arrayBuffer();
         if (cancelled) return;
 
-        const task = pdfjsLib.getDocument({ data });
+        const task = pdfjs.getDocument({ data });
         taskRef.current = task;
         task.onPassword = (updatePassword, reason) => {
           if (cancelled) return;
           passwordUpdateRef.current = updatePassword;
-          setPasswordWrong(reason === pdfjsLib.PasswordResponses.INCORRECT_PASSWORD);
+          setPasswordWrong(reason === pdfjs.PasswordResponses.INCORRECT_PASSWORD);
           setNeedsPassword(true);
           setLoading(false);
         };
@@ -413,15 +410,6 @@ export default function PdfReader({ file, t, onOpenAnother, onReset }) {
         )}
       </div>
 
-      <div className="reader-foot">
-        <span className="file-name">{file.name}</span>
-        <span className="dot" aria-hidden="true" />
-        <span className="page-status">
-          {t.page} {page} {t.of} {pdf.numPages}
-        </span>
-        <span className="dot keyboard-hint" aria-hidden="true" />
-        <span className="keyboard-hint">{t.keyboardHint}</span>
-      </div>
     </main>
   );
 }

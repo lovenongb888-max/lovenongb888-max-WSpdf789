@@ -1,0 +1,16 @@
+{
+  "version": "1.0.4",
+  "releasedAt": "2026-11-14",
+  "notes": {
+    "th": [
+      "เพิ่มเมนูแปลง PDF เป็น PNG, JPG และ WEBP",
+      "ปรับหน้าตาแอปให้กระชับและอ่านง่ายขึ้น",
+      "ไอคอนแอปใหม่ พร้อมแจ้งเตือนเมื่อมีเวอร์ชันใหม่"
+    ],
+    "en": [
+      "New PDF to PNG, JPG and WEBP converter",
+      "Tighter layout and easier reading",
+      "New app icon plus in-app update notices"
+    ]
+  }
+}

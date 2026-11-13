@@ -1,45 +1,79 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Converter from './components/Converter.jsx';
+import Home from './components/Home.jsx';
 import PdfReader from './components/PdfReader.jsx';
-import { CheckIcon, FileTextIcon, FolderOpenIcon, XIcon } from './components/Icons.jsx';
+import UpdatePopup from './components/UpdatePopup.jsx';
+import { BookOpenIcon, CheckIcon, ImageIcon, XIcon } from './components/Icons.jsx';
+import { APP_NAME, APP_VERSION, BRAND_LINE, LANG_KEY, UPDATE_SEEN_KEY } from './config/app.js';
 import { LANGUAGES, getStrings } from './lib/i18n.js';
+import { compareVersions, fetchLatestVersion } from './lib/version.js';
 
-const LANG_KEY = 'wspdf88.lang';
+const LEGACY_LANG_KEY = 'wspdf88.lang';
 
 function readStoredLang() {
   try {
-    return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th';
+    const stored = localStorage.getItem(LANG_KEY) || localStorage.getItem(LEGACY_LANG_KEY);
+    return stored === 'en' ? 'en' : 'th';
   } catch {
     return 'th';
   }
 }
 
+function markUpdateSeen(version) {
+  try {
+    if (version) localStorage.setItem(UPDATE_SEEN_KEY, version);
+  } catch {
+    /* storage is optional */
+  }
+}
+
 export default function App() {
   const [lang, setLang] = useState(readStoredLang);
+  const [view, setView] = useState('read');
   const [file, setFile] = useState(null);
   const [notice, setNotice] = useState('');
-  const [dragging, setDragging] = useState(false);
   const [closed, setClosed] = useState(false);
+  const [update, setUpdate] = useState(null);
 
   const inputRef = useRef(null);
-  const dragDepth = useRef(0);
   const t = getStrings(lang);
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.title = lang === 'th' ? 'WSPdf88 — อ่าน PDF' : 'WSPdf88 — PDF Reader';
+    document.title = `${APP_NAME} — ${t.tagline}`;
     try {
       localStorage.setItem(LANG_KEY, lang);
     } catch {
       /* language preference is optional */
     }
-  }, [lang]);
+  }, [lang, t.tagline]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchLatestVersion()
+      .then((latest) => {
+        if (cancelled || !latest?.version) return;
+        if (compareVersions(latest.version, APP_VERSION) <= 0) return;
+        let seen = null;
+        try {
+          seen = localStorage.getItem(UPDATE_SEEN_KEY);
+        } catch {
+          /* storage is optional */
+        }
+        if (seen !== latest.version) setUpdate(latest);
+      })
+      .catch(() => {
+        /* version metadata is optional */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const openFile = useCallback(
     async (nextFile) => {
       if (!nextFile) return;
-      const looksLikePdf =
-        /\.pdf$/i.test(nextFile.name) ||
-        nextFile.type === 'application/pdf';
+      const looksLikePdf = /\.pdf$/i.test(nextFile.name) || nextFile.type === 'application/pdf';
       if (!looksLikePdf) {
         setNotice(t.errNotPdf);
         return;
@@ -55,17 +89,34 @@ export default function App() {
         return;
       }
       setNotice('');
+      setView('read');
       setFile(nextFile);
     },
     [t],
   );
+
+  useEffect(() => {
+    if (!('launchQueue' in window) || typeof window.launchQueue?.setConsumer !== 'function') {
+      return;
+    }
+    window.launchQueue.setConsumer(async (params) => {
+      const launchFile = params?.files?.[0];
+      if (!launchFile) return;
+      try {
+        const opened = await launchFile.getFile();
+        openFile(opened);
+      } catch {
+        /* ignore files the OS cannot hand over */
+      }
+    });
+  }, [openFile]);
 
   const openSample = async () => {
     try {
       const response = await fetch('/sample.pdf');
       if (!response.ok) throw new Error('sample unavailable');
       const blob = await response.blob();
-      await openFile(new File([blob], 'wspdf88-sample.pdf', { type: 'application/pdf' }));
+      await openFile(new File([blob], 'wspdf789-sample.pdf', { type: 'application/pdf' }));
     } catch {
       setNotice(t.errLoad);
     }
@@ -83,32 +134,21 @@ export default function App() {
     }, 250);
   }, []);
 
-  const handleDragEnter = (event) => {
-    event.preventDefault();
-    dragDepth.current += 1;
-    setDragging(true);
+  const dismissUpdate = () => {
+    markUpdateSeen(update?.version);
+    setUpdate(null);
   };
 
-  const handleDragLeave = (event) => {
-    event.preventDefault();
-    dragDepth.current = Math.max(0, dragDepth.current - 1);
-    if (dragDepth.current === 0) setDragging(false);
+  const applyUpdate = async () => {
+    markUpdateSeen(update?.version);
+    try {
+      const registration = await navigator.serviceWorker?.getRegistration();
+      await registration?.update();
+    } catch {
+      /* the reload still picks up fresh assets */
+    }
+    window.location.reload();
   };
-
-  const handleDragOver = (event) => {
-    event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
-  };
-
-  const handleDrop = (event) => {
-    event.preventDefault();
-    dragDepth.current = 0;
-    setDragging(false);
-    const dropped = event.dataTransfer?.files?.[0];
-    openFile(dropped);
-  };
-
-  const openAnother = () => inputRef.current?.click();
 
   if (closed) {
     return (
@@ -135,7 +175,10 @@ export default function App() {
             WS
           </span>
           <span className="brand-text">
-            <span className="brand-name">WSPdf88</span>
+            <span className="brand-line">
+              <span className="brand-name">{APP_NAME}</span>
+              <span className="version-chip">v{APP_VERSION}</span>
+            </span>
             <span className="brand-tag">{t.tagline}</span>
           </span>
         </div>
@@ -160,62 +203,57 @@ export default function App() {
         </div>
       </header>
 
-      {file ? (
-        <PdfReader
-          key={`${file.name}-${file.size}-${file.lastModified}`}
-          file={file}
-          t={t}
-          onOpenAnother={openAnother}
-          onReset={() => {
-            setFile(null);
-            setNotice('');
-          }}
-        />
-      ) : (
-        <main
-          className="main"
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
+      <nav className="tabs" aria-label={t.menu}>
+        <button
+          type="button"
+          aria-pressed={view === 'read'}
+          onClick={() => setView('read')}
         >
-          <section className="hero">
-            <div className="hero-card">
-              <span className="hero-badge">{t.localBadge}</span>
-              <span className="hero-icon">
-                <FileTextIcon size={32} />
-              </span>
-              <h1>{t.heroTitle}</h1>
-              <p className="hero-sub">{t.heroSubtitle}</p>
+          <BookOpenIcon size={15} />
+          {t.tabRead}
+        </button>
+        <button
+          type="button"
+          aria-pressed={view === 'convert'}
+          onClick={() => setView('convert')}
+        >
+          <ImageIcon size={15} />
+          {t.tabConvert}
+        </button>
+      </nav>
 
-              {notice ? (
-                <p className="alert" role="alert">
-                  {notice}
-                </p>
-              ) : null}
+      <div className="content">
+        {view === 'convert' ? (
+          <Converter t={t} />
+        ) : file ? (
+          <PdfReader
+            key={`${file.name}-${file.size}-${file.lastModified}`}
+            file={file}
+            t={t}
+            onOpenAnother={() => inputRef.current?.click()}
+            onReset={() => {
+              setFile(null);
+              setNotice('');
+            }}
+          />
+        ) : (
+          <Home
+            t={t}
+            notice={notice}
+            onPick={() => inputRef.current?.click()}
+            onSample={openSample}
+            onDropFile={openFile}
+          />
+        )}
+      </div>
 
-              <div className={`dropzone${dragging ? ' is-dragging' : ''}`}>
-                <span className="dropzone-icon">
-                  <FolderOpenIcon size={22} />
-                </span>
-                <div className="dropzone-text">
-                  <strong>{t.dropTitle}</strong>
-                  <span>{t.dropHint}</span>
-                </div>
-                <button type="button" className="btn primary" onClick={openAnother}>
-                  {t.openPdf}
-                </button>
-                <small>{t.localOnly}</small>
-              </div>
-
-              <button type="button" className="link" onClick={openSample}>
-                {t.sample}
-              </button>
-            </div>
-            <p className="hero-foot">{t.footer}</p>
-          </section>
-        </main>
-      )}
+      <footer className="app-foot">
+        <span className="foot-brand">{BRAND_LINE}</span>
+        <span className="dot" aria-hidden="true" />
+        <span>{t.footerNote}</span>
+        <span className="dot" aria-hidden="true" />
+        <span className="foot-version">v{APP_VERSION}</span>
+      </footer>
 
       <input
         ref={inputRef}
@@ -227,6 +265,17 @@ export default function App() {
           event.target.value = '';
         }}
       />
+
+      {update ? (
+        <UpdatePopup
+          t={t}
+          lang={lang}
+          installedVersion={APP_VERSION}
+          latest={update}
+          onLater={dismissUpdate}
+          onUpdate={applyUpdate}
+        />
+      ) : null}
     </div>
   );
 }
